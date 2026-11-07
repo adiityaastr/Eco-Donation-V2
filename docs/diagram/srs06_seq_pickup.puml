@@ -1,0 +1,85 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+autonumber
+actor Pengguna
+participant "user-app" as UA
+participant "backend-api" as B
+database SQLite as DB
+participant "courier-app" as CA
+actor Kurir
+Pengguna -> UA : isi kategori, berat, lokasi, jadwal
+UA -> B : POST /api/pickups (JWT user)
+B -> B : validasi Zod
+B -> DB : INSERT pickup_orders + pickup_items (transaksi)
+B --> UA : 201 order (waiting)
+B ->> CA : order:new (room couriers)
+Kurir -> CA : Ambil tugas ini
+CA -> B : POST /api/pickups/:id/accept
+B -> DB : UPDATE ... WHERE status='waiting' AND courier_id IS NULL
+alt baris berubah
+  B --> CA : 200 order (on_the_way)
+  B ->> CA : order:taken (ke kurir lain)
+  B ->> UA : order:accepted
+else sudah diambil
+  B --> CA : 409 ALREADY_TAKEN
+end
+loop tiap 10 detik selama on_the_way
+  CA -> B : POST /api/pickups/:id/location {lat, lng}
+  B -> DB : simpan posisi kurir
+  B ->> UA : order:location (jarak, ETA)
+  opt jarak <= 500 m pertama kali
+    B ->> UA : order:near
+  end
+end
+Kurir -> CA : Saya sudah tiba
+CA -> B : POST /api/pickups/:id/arrive
+B ->> UA : order:arrived
+
+@enduml

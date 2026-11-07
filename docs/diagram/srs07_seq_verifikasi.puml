@@ -1,0 +1,89 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+autonumber
+actor Kurir
+participant "courier-app" as CA
+participant "backend-api" as B
+database SQLite as DB
+participant "user-app" as UA
+actor Pengguna
+Kurir -> CA : isi berat aktual
+CA -> B : POST /api/pickups/:id/weigh {items}
+B -> DB : simpan actual_weight, status pending_verification
+B -> B : generateCode(), simpan hash SHA-256, TTL 30 menit
+B --> CA : {code, qr_payload, expires_at}
+B ->> UA : order:weighed (total kg, poin)
+CA -> CA : tampilkan QR
+Pengguna -> UA : pindai QR atau ketik kode
+UA -> B : GET /api/pickups/:id/verification
+B --> UA : rincian item, poin, CO2, expires_at
+alt Setujui
+  UA -> B : POST /api/pickups/:id/approve {code}
+  B -> B : cek kedaluwarsa, codesMatch (waktu-konstan)
+  alt kode benar
+    B -> DB : transaksi: completed, saldo + poin, mutasi
+    B -> B : BadgeService.evaluate()
+    B --> UA : {points_earned, total_kg, co2, balance}
+    B ->> UA : order:completed
+    B ->> CA : order:completed
+  else kode salah (< 5 kali)
+    B --> UA : 400 INVALID_CODE, remaining_attempts
+  else terkunci atau kedaluwarsa
+    B --> UA : 423 CODE_LOCKED / 410 CODE_EXPIRED
+    Kurir -> CA : Buat kode baru
+    CA -> B : POST /api/pickups/:id/code
+  end
+else Tolak
+  UA -> B : POST /api/pickups/:id/reject {reason}
+  B -> DB : status arrived, hapus kode
+  B ->> CA : order:rejected (timbang ulang)
+end
+
+@enduml

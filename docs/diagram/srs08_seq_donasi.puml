@@ -1,0 +1,84 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+autonumber
+actor Pengguna
+participant "user-app" as UA
+participant "Every.org API" as E
+participant "backend-api" as B
+database SQLite as DB
+alt kampanye lokal
+  UA -> B : GET /api/campaigns?category=&search=
+  B -> DB : SELECT campaigns (source = local)
+  B --> UA : daftar kampanye
+else kampanye global
+  UA -> E : GET /browse/environment atau /search/:q
+  E --> UA : daftar nirlaba
+  UA -> B : GET /api/campaigns/external/everyorg/:id/stats
+  B --> UA : poin terkumpul dan jumlah donatur
+end
+Pengguna -> UA : pilih jumlah poin
+UA -> B : POST /api/donations
+B -> B : validasi (bilangan bulat, >= 1.000)
+group transaksi basis data
+  opt sumber everyorg
+    B -> DB : UPSERT campaigns (source = everyorg)
+  end
+  B -> DB : UPDATE users SET points = points - n WHERE points >= n
+  alt saldo cukup
+    B -> DB : UPDATE campaigns (terkumpul, donatur)
+    B -> DB : INSERT donations, INSERT transactions (-n)
+  else saldo kurang
+    B --> UA : 400 INSUFFICIENT_POINTS (rollback)
+  end
+end
+B -> B : BadgeService.evaluate()
+B --> UA : 201 {donation_id, campaign_id, balance}
+
+@enduml

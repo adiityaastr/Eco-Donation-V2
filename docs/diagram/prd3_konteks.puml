@@ -1,0 +1,69 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+left to right direction
+actor "Pengguna\n(warga)" as U
+actor "Kurir" as K
+actor "Operator /\npengembang" as O
+rectangle "Sistem Eco-Donation\n(backend-api, user-app, courier-app)" as S #D5E3F0
+cloud "Every.org\nPartner API" as E
+cloud "Photon API\n(geocoding)" as P
+cloud "Tile peta OSM HOT / Esri" as M
+U --> S : akun, permintaan jemput,\npersetujuan timbangan, donasi
+S --> U : estimasi poin, posisi kurir,\nnotifikasi, saldo, dampak, lencana
+K --> S : ambil tugas, lokasi GPS,\nberat aktual
+S --> K : order baru, detail tugas,\nkode dan QR verifikasi
+O --> S : kampanye lokal dan akun kurir (seed)
+S --> E : telusuri dan cari nirlaba
+E --> S : profil organisasi
+S --> P : teks alamat / koordinat
+P --> S : saran alamat
+M --> S : gambar peta
+
+@enduml

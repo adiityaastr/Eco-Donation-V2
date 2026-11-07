@@ -1,0 +1,104 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+left to right direction
+actor "Pengguna" as U
+actor "Kurir" as K
+actor "Every.org API" as E
+rectangle "Eco-Donation" {
+  usecase "Daftar akun" as UC01
+  usecase "Masuk" as UC02
+  usecase "Ajukan penjemputan" as UC03
+  usecase "Pilih titik jemput\ndi peta" as UC04
+  usecase "Lacak kurir\nsecara langsung" as UC05
+  usecase "Batalkan penjemputan" as UC06
+  usecase "Pindai QR / ketik kode" as UC07
+  usecase "Setujui atau tolak\nhasil timbangan" as UC08
+  usecase "Telusuri kampanye" as UC09
+  usecase "Donasikan poin" as UC10
+  usecase "Lihat riwayat dan\nmutasi poin" as UC11
+  usecase "Lihat dampak, lencana,\ndan peringkat" as UC12
+  usecase "Kelola profil dan\nkata sandi" as UC13
+  usecase "Baca notifikasi" as UC14
+  usecase "Lihat tugas tersedia" as UC15
+  usecase "Ambil tugas" as UC16
+  usecase "Bagikan lokasi" as UC17
+  usecase "Tandai tiba" as UC18
+  usecase "Timbang dan\ntampilkan QR" as UC19
+  usecase "Buat kode baru" as UC20
+  usecase "Lepas tugas" as UC21
+  usecase "Lihat riwayat\ndan profil kurir" as UC22
+}
+U --> UC01
+U --> UC02
+U --> UC03
+U --> UC05
+U --> UC06
+U --> UC07
+U --> UC09
+U --> UC10
+U --> UC11
+U --> UC12
+U --> UC13
+U --> UC14
+UC03 ..> UC04 : <<include>>
+UC07 ..> UC08 : <<include>>
+UC09 --> E
+K --> UC02
+K --> UC14
+K --> UC15
+K --> UC16
+K --> UC17
+K --> UC18
+K --> UC19
+K --> UC21
+K --> UC22
+UC20 ..> UC19 : <<extend>>
+
+@enduml

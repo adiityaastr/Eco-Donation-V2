@@ -1,0 +1,172 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+hide circle
+skinparam linetype ortho
+entity "users" as users {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT
+  * email : TEXT <<UNIQUE>>
+  * password : TEXT (bcrypt)
+  phone : TEXT
+  avatar_url : TEXT
+  * points : INTEGER (>= 0)
+  * total_kg : REAL
+  * total_co2 : REAL
+  * total_donations_rp : INTEGER
+  * total_setor_count : INTEGER
+  * total_donasi_count : INTEGER
+  * created_at : TEXT
+}
+entity "couriers" as couriers {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT
+  * email : TEXT <<UNIQUE>>
+  * password : TEXT (bcrypt)
+  phone : TEXT
+  * is_active : INTEGER
+  * created_at : TEXT
+}
+entity "pickup_orders" as po {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  courier_id : INTEGER <<FK>>
+  * status : TEXT
+  * pickup_address : TEXT
+  * pickup_lat, pickup_lng : REAL
+  * scheduled_at : TEXT
+  verification_code_hash : TEXT
+  code_expires_at : TEXT
+  * code_attempts : INTEGER
+  courier_lat, courier_lng : REAL
+  courier_location_at : TEXT
+  * near_notified : INTEGER
+  accepted_at, arrived_at, weighed_at : TEXT
+  completed_at, cancelled_at : TEXT
+  cancelled_by, cancel_reason : TEXT
+  * created_at : TEXT
+}
+entity "pickup_items" as pi {
+  * id : INTEGER <<PK>>
+  --
+  * order_id : INTEGER <<FK>>
+  * category : TEXT
+  * estimated_weight : REAL (> 0)
+  actual_weight : REAL
+}
+entity "campaigns" as c {
+  * id : INTEGER <<PK>>
+  --
+  * source : TEXT (local | everyorg)
+  external_id : TEXT
+  * title : TEXT
+  description, organizer : TEXT
+  * category : TEXT
+  target_amount : INTEGER
+  * collected_amount : INTEGER
+  * donor_count : INTEGER
+  image_url, location, deadline : TEXT
+  * is_urgent : INTEGER
+  * updates : TEXT (JSON)
+  * created_at : TEXT
+}
+entity "donations" as d {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  * campaign_id : INTEGER <<FK>>
+  * points_spent : INTEGER (> 0)
+  * rupiah_value : INTEGER
+  * created_at : TEXT
+}
+entity "transactions" as t {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  * type : TEXT (setor | donasi)
+  * title : TEXT
+  description : TEXT
+  * points : INTEGER
+  ref_type : TEXT
+  ref_id : INTEGER
+  * created_at : TEXT
+}
+entity "badges" as b {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  * name : TEXT
+  * tier : TEXT
+  icon : TEXT
+  * unlocked_at : TEXT
+}
+entity "notifications" as n {
+  * id : INTEGER <<PK>>
+  --
+  * recipient_role : TEXT (user | courier)
+  * recipient_id : INTEGER
+  order_id : INTEGER
+  * type, title, message : TEXT
+  data : TEXT (JSON)
+  * is_read : INTEGER
+  * created_at : TEXT
+}
+users ||--o{ po : membuat
+couriers |o--o{ po : menangani
+po ||--|{ pi : berisi
+users ||--o{ d : memberi
+c ||--o{ d : menerima
+users ||--o{ t : memiliki
+users ||--o{ b : meraih
+po |o..o{ n : terkait
+
+@enduml

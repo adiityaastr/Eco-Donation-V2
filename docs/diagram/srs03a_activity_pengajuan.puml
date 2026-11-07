@@ -1,0 +1,84 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+|Pengguna|
+start
+:Buka layar Setor sampah;
+:Pilih kategori dan isi estimasi berat;
+:Tentukan lokasi (GPS, cari alamat,
+atau geser pin);
+:Pilih hari dan jam;
+:Tekan Konfirmasi penjemputan;
+|Sistem|
+if (Data valid?) then (tidak)
+  :Kirim pesan galat;
+  |Pengguna|
+  :Perbaiki isian;
+  stop
+else (ya)
+endif
+:Simpan order (waiting) dan item
+dalam satu transaksi;
+:Siarkan order:new ke room couriers;
+|Kurir|
+:Lihat daftar tugas tersedia;
+:Ambil tugas;
+|Sistem|
+if (Masih waiting dan
+belum diambil?) then (tidak)
+  :Tolak 409 ALREADY_TAKEN;
+  stop
+else (ya)
+endif
+:Set on_the_way dan courier_id;
+:Kirim order:accepted ke pengguna
+dan order:taken ke kurir lain;
+stop
+
+@enduml

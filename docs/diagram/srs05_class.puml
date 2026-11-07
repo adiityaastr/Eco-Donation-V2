@@ -1,0 +1,162 @@
+@startuml
+
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam ArrowColor #3B4A5C
+skinparam ArrowFontColor #2E3B4A
+skinparam BackgroundColor white
+skinparam ClassBackgroundColor #EAF1F8
+skinparam ClassBorderColor #3B4A5C
+skinparam ClassHeaderBackgroundColor #D5E3F0
+skinparam StateBackgroundColor #EAF1F8
+skinparam StateBorderColor #3B4A5C
+skinparam ActivityBackgroundColor #EAF1F8
+skinparam ActivityBorderColor #3B4A5C
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #3B4A5C
+skinparam UsecaseBackgroundColor #EAF1F8
+skinparam UsecaseBorderColor #3B4A5C
+skinparam ActorBorderColor #1E3A5F
+skinparam ActorBackgroundColor #EAF1F8
+skinparam ParticipantBackgroundColor #EAF1F8
+skinparam ParticipantBorderColor #3B4A5C
+skinparam SequenceLifeLineBorderColor #8A97A8
+skinparam NodeBackgroundColor #EAF1F8
+skinparam NodeBorderColor #3B4A5C
+skinparam DatabaseBackgroundColor #EAF1F8
+skinparam DatabaseBorderColor #3B4A5C
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentBorderColor #3B4A5C
+skinparam RectangleBorderColor #3B4A5C
+skinparam PackageBorderColor #3B4A5C
+skinparam NoteBackgroundColor #FFF8E1
+skinparam NoteBorderColor #C9A227
+skinparam SwimlaneBorderColor #3B4A5C
+skinparam EntityBackgroundColor #EAF1F8
+skinparam EntityBorderColor #3B4A5C
+skinparam CloudBackgroundColor #F4F6F8
+skinparam CloudBorderColor #3B4A5C
+skinparam ActivityStartColor #1E3A5F
+skinparam ActivityEndColor #1E3A5F
+skinparam StateStartColor #1E3A5F
+skinparam StateEndColor #1E3A5F
+skinparam ActivityBarColor #1E3A5F
+
+
+hide empty members
+package "routes" {
+  class AuthRoutes
+  class UserRoutes
+  class PickupRoutes
+  class CampaignRoutes
+  class NotificationRoutes
+}
+package "middleware" {
+  class Auth {
+    +signToken(id, role)
+    +verifyToken(token)
+    +authenticate()
+    +requireRole(roles)
+  }
+  class Validate {
+    +validate(schemas)
+  }
+  class HttpError {
+    +status
+    +code
+    +message
+  }
+}
+package "services" {
+  class AuthService {
+    +register(data)
+    +login(data)
+    +courierLogin(data)
+  }
+  class UserService {
+    +me(id)
+    +update(id, data)
+    +changePassword(id, data)
+    +transactions(id, page)
+    +distribution(id)
+    +leaderboard(auth, limit)
+    +courierMe(id)
+  }
+  class PickupService {
+    +create(userId, data)
+    +listForUser(userId, status)
+    +getForActor(id, auth)
+    +courierTasks(courierId, scope)
+    +courierHistory(courierId, limit)
+    +accept(id, courierId)
+    +arrive(id, courierId)
+    +weigh(id, courierId, items)
+    +updateCourierLocation(id, courierId, lat, lng)
+    +regenerateCode(id, courierId)
+    +verification(id, userId)
+    +approve(id, userId, code)
+    +reject(id, userId, reason)
+    +cancel(id, auth, reason)
+  }
+  class CampaignService {
+    +list(filter)
+    +get(id)
+    +stats(id)
+    +externalStats(source, externalId)
+    +donate(userId, body)
+  }
+  class NotificationService {
+    +notify(role, id, event, payload)
+    +emitTo(role, id, event, payload)
+    +broadcastCouriers(event, payload)
+    +list(role, id, limit)
+    +markRead(role, id, ids)
+  }
+  class BadgeService {
+    +list(userId)
+    +evaluate(userId)
+  }
+}
+package "config dan utils" {
+  class Rates {
+    +RATES
+    +CO2_PER_KG = 1.5
+    +MIN_DONATION = 1000
+    +calculate(items)
+  }
+  class Code {
+    +generateCode()
+    +hashCode(code)
+    +codesMatch(code, hash)
+  }
+  class Geo {
+    +distanceMeters()
+    +etaMinutes()
+  }
+}
+class SocketServer {
+  +attachSocket(httpServer)
+  rooms: user:id, courier:id, couriers
+}
+AuthRoutes --> AuthService
+UserRoutes --> UserService
+PickupRoutes --> PickupService
+CampaignRoutes --> CampaignService
+NotificationRoutes --> NotificationService
+PickupRoutes ..> Auth
+PickupRoutes ..> Validate
+PickupService --> NotificationService
+PickupService --> Rates
+PickupService --> Code
+PickupService --> Geo
+PickupService ..> BadgeService : onStatsChanged
+CampaignService ..> BadgeService : onStatsChanged
+UserService --> BadgeService
+BadgeService --> NotificationService
+NotificationService --> SocketServer : emitter
+
+@enduml
